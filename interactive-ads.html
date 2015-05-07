@@ -1,0 +1,72 @@
+<html>
+  <head>
+    <style>
+      .hidden { display : none; }
+      .container { width : 100%; }
+      .center { display : block; margin : auto; }
+    </style>
+  </head>
+  <body>
+  
+    <!-- Main page content -->
+    <video id="webcam_preview" class="hidden" autoplay></video>
+    <img id="img_snapshot" src="" class="hidden"/>
+    <div class="container"><img class="center" id="advertisement" src="man.jpg"/></div>
+       
+    
+    <!-- Load jquery and FACE libraries -->
+    <script src="../FACE-1.0.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    
+    <!-- Page control -->
+    <script>
+      //FOR JAVASCRIPT DEMONSTRATION PURPUSES ONLY, NEVER DISCLOSE YOUR KEYS TO THIRD PARTIES!
+      var client_id = 'c8b0d94f910a4997809b3e1519c81712';
+      var app_key   = '4b62db1333b7414f9af10b7e54ad7bff';
+
+      function success( result ) {
+        if( result.persons.length > 0 ) {
+          age        = result.persons[0].age.value;
+          gender     = result.persons[0].gender.value;
+          confidence = result.persons[0].gender.confidence;
+          
+          if ( gender == "Male" && confidence > 50 )
+            $('#advertisement').attr( 'src', 'man.jpg' )
+          else if ( gender == "Female" && confidence > 50)
+            $('#advertisement').attr( 'src', 'woman.jpg' )
+        }      
+      }
+  
+      function failure( error ) {
+        alert( error );
+      }
+  
+      function sendDetectRequest() {
+        var img = document.querySelector( "#img_snapshot" );
+        if( img.naturalWidth == 0 ||  img.naturalHeight == 0 ) // Check if a snapshot has been taken
+          return;
+        var imgBlob = FACE.util.dataURItoBlob( img.src );
+        FACE.sendImage( imgBlob, success, failure, app_key, client_id, 'age,gender' );
+      }
+  
+      function startCapture() {
+        FACE.webcam.startPlaying( "webcam_preview" );
+        setInterval( function()
+        {
+          FACE.webcam.takePicture( "webcam_preview", "img_snapshot" );
+          sendDetectRequest();
+        },
+        1100 );
+      }
+
+      // Trigger the start
+      $( document ).ready( function() {
+        if( client_id =='' ) {
+          alert( 'Please specify your keys in the source' );
+        } else {
+          startCapture();
+        }
+      });
+    </script>    
+  </body>
+</html>
